@@ -1,0 +1,362 @@
+# Create a repository structure for a "Lawyers in Dubai" static site with PHP mailer
+import os, textwrap, json, zipfile, pathlib
+
+base = "/mnt/data/lawyers-in-dubai-site"
+assets_css = f"{base}/assets/css"
+assets_js = f"{base}/assets/js"
+assets_img = f"{base}/assets/img"
+os.makedirs(assets_css, exist_ok=True)
+os.makedirs(assets_js, exist_ok=True)
+os.makedirs(assets_img, exist_ok=True)
+
+# Basic CSS
+styles_css = """
+:root{
+  --bg:#0f172a; /* slate-900 */
+  --card:#111827; /* gray-900 */
+  --text:#e5e7eb; /* gray-200 */
+  --muted:#9ca3af; /* gray-400 */
+  --accent:#eab308; /* amber-500 */
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial,"Noto Sans",sans-serif;line-height:1.6}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:1100px;margin:0 auto;padding:24px}
+.nav{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:14px 0}
+.nav a{font-weight:600}
+.brand{font-weight:800;letter-spacing:.3px;margin-right:auto;color:#fff}
+.hero{padding:48px 0}
+.hero h1{font-size:2rem;margin:0 0 10px 0}
+.hero p{color:var(--muted);max-width:800px}
+.grid{display:grid;gap:18px}
+.grid3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{background:var(--card);border:1px solid #1f2937;border-radius:14px;padding:18px;box-shadow:0 5px 18px rgba(0,0,0,.15)}
+.card h3{margin-top:0}
+.footer{border-top:1px solid #1f2937;margin-top:40px;padding:24px 0;color:var(--muted)}
+.btn{display:inline-block;background:var(--accent);color:#0f172a;padding:10px 16px;border-radius:10px;font-weight:700;border:0}
+.btn:hover{filter:brightness(1.05)}
+.list{padding-left:18px}
+kbd{background:#0b1220;border:1px solid #1f2937;border-bottom-width:2px;border-radius:6px;padding:1px 6px;font-size:.9em}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #1f2937;padding:10px;text-align:left}
+input,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #1f2937;background:#0b1220;color:var(--text)}
+label{display:block;margin:10px 0 6px 0}
+form .row{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+small{color:var(--muted)}
+"""
+
+# Basic JS
+main_js = """
+document.addEventListener('DOMContentLoaded', () => {
+  const year = document.querySelector('#year');
+  if (year) year.textContent = new Date().getFullYear();
+});
+"""
+
+# Shared header and footer
+def header(title):
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title}</title>
+<meta name="description" content="Experienced lawyers in Dubai providing litigation and advisory services to individuals and businesses.">
+<link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="nav">
+      <a class="brand" href="/index.html">Lawyers in Dubai</a>
+      <a href="/about.html">About</a>
+      <a href="/services.html">Services</a>
+      <a href="/lawyers.html">Lawyers</a>
+      <a href="/blog.html">Blog</a>
+      <a class="btn" href="/contact.html">Contact</a>
+    </nav>
+"""
+def footer():
+    return """
+    <div class="footer">
+      <p>© <span id="year"></span> Lawyers in Dubai. All rights reserved.</p>
+    </div>
+  </div>
+  <script src="/assets/js/main.js"></script>
+</body>
+</html>
+"""
+
+# Pages
+index_html = header("Lawyers in Dubai — Litigation & Advisory") + """
+  <section class="hero">
+    <h1>Dubai Lawyers for Complex Civil & Commercial Disputes</h1>
+    <p>Results-driven representation before Dubai Courts and UAE federal jurisdictions. Our team handles commercial, civil, and real estate disputes, criminal defense, and corporate advisory matters. Russian-speaking client support is available on request.</p>
+    <p><a class="btn" href="/contact.html">Book a Consultation</a></p>
+  </section>
+
+  <section class="grid grid3">
+    <div class="card">
+      <h3>Commercial Litigation</h3>
+      <p>Contract claims, shareholder disputes, brokerage commission claims, and enforcement of judgments and awards.</p>
+    </div>
+    <div class="card">
+      <h3>Real Estate</h3>
+      <p>Off-plan disputes, escrow matters, developer claims, brokerage, and landlord–tenant cases.</p>
+    </div>
+    <div class="card">
+      <h3>Criminal Defense</h3>
+      <p>Fraud, breach of trust, cybercrimes, and financial offenses with strategic early-stage intervention.</p>
+    </div>
+  </section>
+""" + footer()
+
+# About page (>= 350 words; avoid "AAA")
+about_text = """
+Our Dubai-based practice serves clients across the United Arab Emirates with a sharp focus on litigation, dispute resolution, and high-stakes advisory work. We believe that effective legal representation blends courtroom experience with meticulous preparation, clear communication, and business-minded strategy. From the first consultation to the final judgment or settlement, our approach is simple: identify leverage, manage risk, and execute with precision.
+
+The firm’s leadership combines decades of service within the UAE judiciary and private practice. Under senior guidance, our team is trained to handle complex filings, draft persuasive submissions, and present clear arguments before all levels of court. We regularly act in commercial, civil, real estate, criminal, and corporate matters, including cross-border issues that require coordination with experts, auditors, and foreign counsel.
+
+Clients value our responsiveness and structure. We provide realistic timelines, action lists, and document checklists at the outset so that each matter progresses efficiently. When urgent measures are needed—such as precautionary attachment, travel bans, or expert appointments—we move quickly and keep clients informed on every step. For businesses, we design practical policies, contract frameworks, and compliance protocols to reduce disputes before they arise.
+
+Russian-speaking clients receive particular care: we can prepare bilingual communications, translate core filings, and ensure that instructions are fully understood and accurately reflected in the record. We appreciate the commercial realities faced by investors and entrepreneurs operating in Dubai’s fast-moving marketplace—where the cost of delay can be high and the margin for error small. Our goal is to protect capital, resolve disputes, and restore momentum.
+
+Integrity and candour guide our advice. We do not promise outcomes we cannot deliver. Instead, we assess the strengths and weaknesses of each case, test the evidence, and tell clients what they need to hear—early. This clarity helps refine strategy, control expenditure, and maximize prospects of a favorable result, whether in court or across the negotiation table.
+
+Beyond contentious work, we support companies with corporate governance, regulatory inquiries, and internal investigations. We draft and review contracts, advise on risk allocation, and assist with KYC/AML documentation and compliance workflows. In every engagement, we measure success by outcomes achieved and the confidence our clients develop in the process.
+
+If you are navigating a dispute or preparing for a strategic transaction, our team stands ready to help. Arrange a consultation to receive a focused plan of action, a transparent fee proposal, and a clear roadmap designed around your objectives in Dubai and the wider UAE.
+""".strip()
+
+about_html = header("About — Lawyers in Dubai") + f"""
+  <section class="hero">
+    <h1>About Our Practice</h1>
+    <p>{about_text}</p>
+  </section>
+""" + footer()
+
+services_html = header("Services — Lawyers in Dubai") + """
+  <section class="hero">
+    <h1>Services</h1>
+    <div class="grid grid3">
+      <div class="card">
+        <h3>Civil & Commercial Litigation</h3>
+        <ul class="list">
+          <li>Contractual disputes and damages</li>
+          <li>Shareholder & partnership conflicts</li>
+          <li>Brokerage & agency commission claims</li>
+          <li>Enforcement of judgments</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Real Estate</h3>
+        <ul class="list">
+          <li>Off-plan and escrow disputes</li>
+          <li>Landlord–tenant proceedings</li>
+          <li>Developer claims & defects</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Criminal & Cybercrime</h3>
+        <ul class="list">
+          <li>Breach of trust & fraud</li>
+          <li>Cybercrime and evidence preservation</li>
+          <li>Early-stage advisory & defense</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Corporate Advisory</h3>
+        <ul class="list">
+          <li>Governance & compliance (KYC/AML)</li>
+          <li>Contract drafting & negotiation</li>
+          <li>Regulatory liaison</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>For Russian-speaking Clients</h3>
+        <ul class="list">
+          <li>Bilingual consultations and filings</li>
+          <li>Cross-border coordination</li>
+          <li>Evidence translation & certification</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+""" + footer()
+
+# Lawyers page – put Mr. Ahmad Abdulla Ahli first, without mentioning "AAA" brand
+lawyers_html = header("Lawyers — Dubai Team") + """
+  <section class="hero">
+    <h1>Our Lawyers</h1>
+    <p>Meet senior counsel and the litigation team serving clients across Dubai and the UAE. Russian-speaking client support available.</p>
+  </section>
+  <section class="grid grid3">
+    <div class="card">
+      <h3>Mr. Ahmad Abdulla Ahli — Senior Attorney</h3>
+      <p>Former judge with more than 27 years of judicial and legal experience, focusing on complex commercial and real estate disputes, high-value enforcement, and strategic settlement. Frequently advises on matters involving brokerage commission, off-plan projects, and shareholder claims.</p>
+      <p><small>Languages: Arabic, English</small></p>
+    </div>
+    <div class="card">
+      <h3>Dr. Mustafa — Senior Litigator</h3>
+      <p>Commercial and civil disputes, corporate fraud, and urgent measures. Known for clear submissions and courtroom strategy.</p>
+      <p><small>Languages: Arabic, English</small></p>
+    </div>
+    <div class="card">
+      <h3>Ms. Aysha Lukman — Client Relations & Case Management</h3>
+      <p>Coordinates filings, translations, and client communications, ensuring documents meet court formalities and timelines.</p>
+      <p><small>Languages: Arabic, English, Russian (coordination)</small></p>
+    </div>
+  </section>
+""" + footer()
+
+blog_html = header("Blog — Lawyers in Dubai") + """
+  <section class="hero">
+    <h1>Insights & Updates</h1>
+    <p>Legal notes and practical guides for doing business and litigating in Dubai.</p>
+    <div class="grid grid3">
+      <div class="card">
+        <h3>Brokerage Fees in UAE Law</h3>
+        <p>How courts assess entitlement and rate when the fee is not specified in contract.</p>
+      </div>
+      <div class="card">
+        <h3>Motor Insurance: Caps & Conditions</h3>
+        <p>Understanding premium limits and mandatory clauses in UAE policies.</p>
+      </div>
+      <div class="card">
+        <h3>Evidence in Cybercrime Cases</h3>
+        <p>Early preservation steps that can shape the outcome of an investigation.</p>
+      </div>
+    </div>
+  </section>
+""" + footer()
+
+contact_html = header("Contact — Lawyers in Dubai") + """
+  <section class="hero">
+    <h1>Contact Us</h1>
+    <p>Send us a message and our team will reply with available consultation slots.</p>
+    <form action="/contact.php" method="post">
+      <div class="row">
+        <div>
+          <label for="name">Name</label>
+          <input id="name" name="name" required>
+        </div>
+        <div>
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" required>
+        </div>
+      </div>
+      <label for="message">Message</label>
+      <textarea id="message" name="message" rows="6" required></textarea>
+      <p><button class="btn" type="submit">Send</button></p>
+      <small>By submitting, you consent to our replying and processing your data for this request.</small>
+    </form>
+  </section>
+""" + footer()
+
+# Simple PHP mailer (user must set RECIPIENT_EMAIL)
+contact_php = r"""<?php
+// Basic, minimal mailer. Your hosting must allow PHP mail() or have SMTP configured.
+// 1) Set your recipient email below.
+// 2) Ensure your server's PHP mail is enabled, or configure SMTP via your host.
+
+$recipient = "REPLACE_WITH_YOUR_EMAIL@example.com"; // <-- change this
+$subject   = "New Website Enquiry (Lawyers in Dubai)";
+
+function sanitize($v) {
+  return trim(filter_var($v, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+}
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  $name = sanitize($_POST["name"] ?? "");
+  $email = filter_var($_POST["email"] ?? "", FILTER_VALIDATE_EMAIL);
+  $message = sanitize($_POST["message"] ?? "");
+
+  if (!$name || !$email || !$message) {
+    http_response_code(400);
+    echo "Invalid input. Please go back and complete the form.";
+    exit;
+  }
+
+  $headers = "From: ".$name." <".$email.">\r\n";
+  $headers .= "Reply-To: ".$email."\r\n";
+  $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+
+  $body = "Name: ".$name."\nEmail: ".$email."\n\nMessage:\n".$message."\n";
+
+  if (mail($recipient, $subject, $body, $headers)) {
+    echo "Thank you. Your message has been sent.";
+  } else {
+    echo "Sorry, we could not send your message. Please email us directly.";
+  }
+} else {
+  header("Location: /contact.html");
+  exit;
+}
+"""
+# README with deploy & Softaculous notes
+readme_md = """
+# Lawyers in Dubai — Static Site (No WordPress Needed)
+
+A fast, lightweight website you can deploy on any cPanel/shared host — perfect when your plan does **not** include WordPress or when Softaculous does **not** show WordPress.
+
+## Features
+- Static HTML/CSS/JS (no framework).
+- PHP contact form (`contact.php`) that uses `mail()`.
+- Clean, modern dark UI.
+- Pages: Home, About (350+ words), Services, Lawyers (with Mr. Ahmad Abdulla Ahli first), Blog, Contact.
+
+## Quick Start (cPanel)
+1. Download the ZIP from ChatGPT.
+2. In cPanel, open **File Manager** → go to `public_html/`.
+3. Upload the ZIP and **Extract**.
+4. Make sure `index.html` is directly inside `public_html/` (not nested in an extra folder).
+5. Open the site in your browser.
+
+## Configure the Contact Form
+- Edit `contact.php` and replace `REPLACE_WITH_YOUR_EMAIL@example.com` with your address.
+- If `mail()` is disabled by your host, ask support to enable it or set up SMTP (e.g., via PHP mailer in a future step).
+
+## If You Still Want WordPress Later
+If Softaculous does not show WordPress:
+- Check **PHP version** in cPanel (WordPress needs a supported version).
+- Check **domain selection** inside Softaculous (top-right dropdown).
+- Sometimes hosts hide WordPress on basic plans; ask support to enable **MySQL** and WordPress, or upgrade the plan.
+- You can also **manual install** WordPress:
+  1. Create a MySQL database/user in cPanel → MySQL® Databases.
+  2. Download WordPress from wordpress.org, upload to `public_html/`.
+  3. Visit your domain to run the installer.
+
+## Customization
+- Edit content inside each `.html` page.
+- Styles are in `assets/css/styles.css`.
+- Add your logo to `assets/img/` and update `<a class="brand">` or insert an `<img>` tag.
+
+## Notes
+- The site avoids naming any specific firm brand on purpose, as requested.
+- For Russian-speaking clients, see the Services section; you can add a Russian page later if needed.
+"""
+
+files = {
+    f"{assets_css}/styles.css": styles_css,
+    f"{assets_js}/main.js": main_js,
+    f"{base}/index.html": index_html,
+    f"{base}/about.html": about_html,
+    f"{base}/services.html": services_html,
+    f"{base}/lawyers.html": lawyers_html,
+    f"{base}/blog.html": blog_html,
+    f"{base}/contact.html": contact_html,
+    f"{base}/contact.php": contact_php,
+    f"{base}/README.md": readme_md,
+}
+
+for path, content in files.items():
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+# Zip it
+zip_path = "/mnt/data/lawyers-in-dubai-site.zip"
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+    for p in pathlib.Path(base).rglob("*"):
+        z.write(p, p.relative_to("/mnt/data"))
+
+zip_path
